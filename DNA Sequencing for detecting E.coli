@@ -1,0 +1,2659 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {
+    "id": "HyDEYVJ0beaJ"
+   },
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "import pandas as pd\n",
+    "import seaborn as sns\n",
+    "from sklearn.preprocessing import OneHotEncoder\n",
+    "import pickle\n",
+    "from sklearn.neural_network import MLPClassifier\n",
+    "from sklearn.metrics import classification_report, accuracy_score\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from sklearn.metrics import confusion_matrix\n",
+    "url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/molecular-biology/promoter-gene-sequences/promoters.data'\n",
+    "names = ['Class', 'id', 'Sequence']\n",
+    "data = pd.read_csv(url, names = names)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 363
+    },
+    "executionInfo": {
+     "elapsed": 414,
+     "status": "ok",
+     "timestamp": 1642503096172,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "ZWAEs404bt1e",
+    "outputId": "6e0fdb8d-6b16-42ed-f0a8-aeba173615d4"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Class</th>\n",
+       "      <th>id</th>\n",
+       "      <th>Sequence</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>+</td>\n",
+       "      <td>S10</td>\n",
+       "      <td>\\t\\ttactagcaatacgcttgcgttcggtggttaagtatgtataat...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>+</td>\n",
+       "      <td>AMPC</td>\n",
+       "      <td>\\t\\ttgctatcctgacagttgtcacgctgattggtgtcgttacaat...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>+</td>\n",
+       "      <td>AROH</td>\n",
+       "      <td>\\t\\tgtactagagaactagtgcattagcttatttttttgttatcat...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>+</td>\n",
+       "      <td>DEOP2</td>\n",
+       "      <td>\\taattgtgatgtgtatcgaagtgtgttgcggagtagatgttagaa...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>+</td>\n",
+       "      <td>LEU1_TRNA</td>\n",
+       "      <td>\\ttcgataattaactattgacgaaaagctgaaaaccactagaatgc...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>+</td>\n",
+       "      <td>MALEFG</td>\n",
+       "      <td>\\taggggcaaggaggatggaaagaggttgccgtataaagaaactag...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>+</td>\n",
+       "      <td>MALK</td>\n",
+       "      <td>\\t\\tcagggggtggaggatttaagccatctcctgatgacgcatagt...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>+</td>\n",
+       "      <td>RECA</td>\n",
+       "      <td>\\t\\ttttctacaaaacacttgatactgtatgagcatacagtataat...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>+</td>\n",
+       "      <td>RPOB</td>\n",
+       "      <td>\\t\\tcgacttaatatactgcgacaggacgtccgttctgtgtaaatc...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>+</td>\n",
+       "      <td>RRNAB_P1</td>\n",
+       "      <td>\\tttttaaatttcctcttgtcaggccggaataactccctataatgc...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  Class         id                                           Sequence\n",
+       "0     +        S10  \\t\\ttactagcaatacgcttgcgttcggtggttaagtatgtataat...\n",
+       "1     +       AMPC  \\t\\ttgctatcctgacagttgtcacgctgattggtgtcgttacaat...\n",
+       "2     +       AROH  \\t\\tgtactagagaactagtgcattagcttatttttttgttatcat...\n",
+       "3     +      DEOP2  \\taattgtgatgtgtatcgaagtgtgttgcggagtagatgttagaa...\n",
+       "4     +  LEU1_TRNA  \\ttcgataattaactattgacgaaaagctgaaaaccactagaatgc...\n",
+       "5     +     MALEFG  \\taggggcaaggaggatggaaagaggttgccgtataaagaaactag...\n",
+       "6     +       MALK  \\t\\tcagggggtggaggatttaagccatctcctgatgacgcatagt...\n",
+       "7     +       RECA  \\t\\ttttctacaaaacacttgatactgtatgagcatacagtataat...\n",
+       "8     +       RPOB  \\t\\tcgacttaatatactgcgacaggacgtccgttctgtgtaaatc...\n",
+       "9     +   RRNAB_P1  \\tttttaaatttcctcttgtcaggccggaataactccctataatgc..."
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "data.head(10)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 27,
+     "status": "ok",
+     "timestamp": 1642502945917,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "OSHNK5MsbwNw",
+    "outputId": "fd6850f6-9143-49ec-de59-3c784fb6c2bc"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(106, 3)"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "data.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 24,
+     "status": "ok",
+     "timestamp": 1642502945917,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "ifrMAOrXb16q",
+    "outputId": "26b1ddc5-2033-4dc9-cb0f-421e6e99237c"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Class       object\n",
+       "id          object\n",
+       "Sequence    object\n",
+       "dtype: object"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "data.dtypes"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 24,
+     "status": "ok",
+     "timestamp": 1642502945918,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "toSK2GYgb38-",
+    "outputId": "1ac9ca73-cae0-44b7-f9f5-530cdf6cce14"
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "+    53\n",
+      "-    53\n",
+      "Name: Class, dtype: int64\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Refining and structuring the data\n",
+    "\n",
+    "# Build our dataset using custom pandas dataframe\n",
+    "classes = data.loc[:,'Class']\n",
+    "classes.head()\n",
+    "print()\n",
+    "print(classes.value_counts())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 35
+    },
+    "executionInfo": {
+     "elapsed": 501,
+     "status": "ok",
+     "timestamp": 1642503056562,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "GFgY5mzTb9nc",
+    "outputId": "3943761e-ec9a-4569-f167-3c14fccecf4d"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'\\t\\ttaacattaataaataaggaggctctaatggcactcattagccaatcaatcaagaact'"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# generate list of DNA sequence\n",
+    "sequence = list(data.loc[:, 'Sequence'])\n",
+    "sequence[-1]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 18,
+     "status": "ok",
+     "timestamp": 1642502945919,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "Ir8Qgpp2cBG0",
+    "outputId": "40f83e27-21f4-4347-dfc8-e232db745e6e"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['t',\n",
+       " 'a',\n",
+       " 'c',\n",
+       " 't',\n",
+       " 'a',\n",
+       " 'g',\n",
+       " 'c',\n",
+       " 'a',\n",
+       " 'a',\n",
+       " 't',\n",
+       " 'a',\n",
+       " 'c',\n",
+       " 'g',\n",
+       " 'c',\n",
+       " 't',\n",
+       " 't',\n",
+       " 'g',\n",
+       " 'c',\n",
+       " 'g',\n",
+       " 't',\n",
+       " 't',\n",
+       " 'c',\n",
+       " 'g',\n",
+       " 'g',\n",
+       " 't',\n",
+       " 'g',\n",
+       " 'g',\n",
+       " 't',\n",
+       " 't',\n",
+       " 'a',\n",
+       " 'a',\n",
+       " 'g',\n",
+       " 't',\n",
+       " 'a',\n",
+       " 't',\n",
+       " 'g',\n",
+       " 't',\n",
+       " 'a',\n",
+       " 't',\n",
+       " 'a',\n",
+       " 'a',\n",
+       " 't',\n",
+       " 'g',\n",
+       " 'c',\n",
+       " 'g',\n",
+       " 'c',\n",
+       " 'g',\n",
+       " 'g',\n",
+       " 'g',\n",
+       " 'c',\n",
+       " 't',\n",
+       " 't',\n",
+       " 'g',\n",
+       " 't',\n",
+       " 'c',\n",
+       " 'g',\n",
+       " 't',\n",
+       " '+']"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#Remove tab from each sequence\n",
+    "dic = {}\n",
+    "for i, seq in enumerate(sequence):\n",
+    "    nucleotides = list(seq)\n",
+    "    nucleotides = [char for char in nucleotides if char != '\\t']\n",
+    "    #append class assignment\n",
+    "    nucleotides.append(classes[i])\n",
+    "    \n",
+    "    dic[i] = nucleotides\n",
+    "list(dic[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 299
+    },
+    "executionInfo": {
+     "elapsed": 16,
+     "status": "ok",
+     "timestamp": 1642502945919,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "Mk53VKnPcN0t",
+    "outputId": "bae8f4f0-f2b7-4180-cada-d5d57961a709"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>0</th>\n",
+       "      <th>1</th>\n",
+       "      <th>2</th>\n",
+       "      <th>3</th>\n",
+       "      <th>4</th>\n",
+       "      <th>5</th>\n",
+       "      <th>6</th>\n",
+       "      <th>7</th>\n",
+       "      <th>8</th>\n",
+       "      <th>9</th>\n",
+       "      <th>...</th>\n",
+       "      <th>96</th>\n",
+       "      <th>97</th>\n",
+       "      <th>98</th>\n",
+       "      <th>99</th>\n",
+       "      <th>100</th>\n",
+       "      <th>101</th>\n",
+       "      <th>102</th>\n",
+       "      <th>103</th>\n",
+       "      <th>104</th>\n",
+       "      <th>105</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>...</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>...</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>...</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 106 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  0   1   2   3   4   5   6   7   8   9    ... 96  97  98  99  100 101 102  \\\n",
+       "0   t   t   g   a   t   a   c   t   c   t  ...   c   c   t   a   g   c   g   \n",
+       "1   a   g   t   a   c   g   a   t   g   t  ...   c   g   a   g   a   c   t   \n",
+       "2   c   c   a   t   g   g   g   t   a   t  ...   g   c   t   a   g   t   a   \n",
+       "3   t   t   c   t   a   g   g   c   c   t  ...   a   t   g   g   a   c   t   \n",
+       "4   a   a   t   g   t   g   g   t   t   a  ...   g   a   a   g   g   a   t   \n",
+       "\n",
+       "  103 104 105  \n",
+       "0   c   c   t  \n",
+       "1   g   t   a  \n",
+       "2   c   c   a  \n",
+       "3   g   g   c  \n",
+       "4   a   t   a  \n",
+       "\n",
+       "[5 rows x 106 columns]"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Convert Dict object into dataframe\n",
+    "df = pd.DataFrame(dic)\n",
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 270
+    },
+    "executionInfo": {
+     "elapsed": 16,
+     "status": "ok",
+     "timestamp": 1642502945920,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "waWxQ8bhcSE1",
+    "outputId": "5ed6b619-a096-45bf-8612-759fd1d2643a"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>0</th>\n",
+       "      <th>1</th>\n",
+       "      <th>2</th>\n",
+       "      <th>3</th>\n",
+       "      <th>4</th>\n",
+       "      <th>5</th>\n",
+       "      <th>6</th>\n",
+       "      <th>7</th>\n",
+       "      <th>8</th>\n",
+       "      <th>9</th>\n",
+       "      <th>...</th>\n",
+       "      <th>48</th>\n",
+       "      <th>49</th>\n",
+       "      <th>50</th>\n",
+       "      <th>51</th>\n",
+       "      <th>52</th>\n",
+       "      <th>53</th>\n",
+       "      <th>54</th>\n",
+       "      <th>55</th>\n",
+       "      <th>56</th>\n",
+       "      <th>57</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>...</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>...</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 58 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  0  1  2  3  4  5  6  7  8  9   ... 48 49 50 51 52 53 54 55 56 57\n",
+       "0  t  a  c  t  a  g  c  a  a  t  ...  g  c  t  t  g  t  c  g  t  +\n",
+       "1  t  g  c  t  a  t  c  c  t  g  ...  c  a  t  c  g  c  c  a  a  +\n",
+       "2  g  t  a  c  t  a  g  a  g  a  ...  c  a  c  c  c  g  g  c  g  +\n",
+       "3  a  a  t  t  g  t  g  a  t  g  ...  a  a  c  a  a  a  c  t  c  +\n",
+       "4  t  c  g  a  t  a  a  t  t  a  ...  c  c  g  t  g  g  t  a  g  +\n",
+       "\n",
+       "[5 rows x 58 columns]"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# transpose dataframe into correct format\n",
+    "df = df.transpose()\n",
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {
+    "id": "dJfKOpWocZDO"
+   },
+   "outputs": [],
+   "source": [
+    "# Rename the 57th column as it is our classes\n",
+    "df.rename(columns = {57:'Class'}, inplace = True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 270
+    },
+    "executionInfo": {
+     "elapsed": 22,
+     "status": "ok",
+     "timestamp": 1642502946863,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "gNiMn4oKcfrb",
+    "outputId": "8ce2cda2-dc3f-451a-a8f1-8d906161af58"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>0</th>\n",
+       "      <th>1</th>\n",
+       "      <th>2</th>\n",
+       "      <th>3</th>\n",
+       "      <th>4</th>\n",
+       "      <th>5</th>\n",
+       "      <th>6</th>\n",
+       "      <th>7</th>\n",
+       "      <th>8</th>\n",
+       "      <th>9</th>\n",
+       "      <th>...</th>\n",
+       "      <th>48</th>\n",
+       "      <th>49</th>\n",
+       "      <th>50</th>\n",
+       "      <th>51</th>\n",
+       "      <th>52</th>\n",
+       "      <th>53</th>\n",
+       "      <th>54</th>\n",
+       "      <th>55</th>\n",
+       "      <th>56</th>\n",
+       "      <th>Class</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>...</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>...</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>+</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 58 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   0  1  2  3  4  5  6  7  8  9  ... 48 49 50 51 52 53 54 55 56 Class\n",
+       "0  t  a  c  t  a  g  c  a  a  t  ...  g  c  t  t  g  t  c  g  t     +\n",
+       "1  t  g  c  t  a  t  c  c  t  g  ...  c  a  t  c  g  c  c  a  a     +\n",
+       "2  g  t  a  c  t  a  g  a  g  a  ...  c  a  c  c  c  g  g  c  g     +\n",
+       "3  a  a  t  t  g  t  g  a  t  g  ...  a  a  c  a  a  a  c  t  c     +\n",
+       "4  t  c  g  a  t  a  a  t  t  a  ...  c  c  g  t  g  g  t  a  g     +\n",
+       "\n",
+       "[5 rows x 58 columns]"
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 270
+    },
+    "executionInfo": {
+     "elapsed": 20,
+     "status": "ok",
+     "timestamp": 1642502946863,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "rDt8MdXgy31Q",
+    "outputId": "a40845a7-97cd-4e1a-8195-252207b9c098"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>0</th>\n",
+       "      <th>1</th>\n",
+       "      <th>2</th>\n",
+       "      <th>3</th>\n",
+       "      <th>4</th>\n",
+       "      <th>5</th>\n",
+       "      <th>6</th>\n",
+       "      <th>7</th>\n",
+       "      <th>8</th>\n",
+       "      <th>9</th>\n",
+       "      <th>...</th>\n",
+       "      <th>47</th>\n",
+       "      <th>48</th>\n",
+       "      <th>49</th>\n",
+       "      <th>50</th>\n",
+       "      <th>51</th>\n",
+       "      <th>52</th>\n",
+       "      <th>53</th>\n",
+       "      <th>54</th>\n",
+       "      <th>55</th>\n",
+       "      <th>56</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>...</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>...</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>...</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>...</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 57 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  0  1  2  3  4  5  6  7  8  9   ... 47 48 49 50 51 52 53 54 55 56\n",
+       "0  t  a  c  t  a  g  c  a  a  t  ...  g  g  c  t  t  g  t  c  g  t\n",
+       "1  t  g  c  t  a  t  c  c  t  g  ...  g  c  a  t  c  g  c  c  a  a\n",
+       "2  g  t  a  c  t  a  g  a  g  a  ...  c  c  a  c  c  c  g  g  c  g\n",
+       "3  a  a  t  t  g  t  g  a  t  g  ...  t  a  a  c  a  a  a  c  t  c\n",
+       "4  t  c  g  a  t  a  a  t  t  a  ...  t  c  c  g  t  g  g  t  a  g\n",
+       "\n",
+       "[5 rows x 57 columns]"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "temp = df.copy(deep=True)\n",
+    "temp = temp.drop(['Class'], axis = 1)\n",
+    "\n",
+    "temp.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 19,
+     "status": "ok",
+     "timestamp": 1642502946864,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "j1xrgi4EjWWH",
+    "outputId": "f6d3a561-f3b8-4299-dbfd-a592ef3ed9ba"
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object), array(['a', 'c', 'g', 't'], dtype=object)]\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Encoding using one-hot encoder:\n",
+    "\n",
+    "enc = OneHotEncoder(handle_unknown='ignore')\n",
+    "enc.fit(temp)\n",
+    "print(enc.categories_)\n",
+    "df1 = enc.transform(temp).toarray()\n",
+    "del temp\n",
+    "# df1[1:3]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {
+    "id": "duM_lP-alHU7"
+   },
+   "outputs": [],
+   "source": [
+    "# Saving the one-hot encoder\n",
+    "\n",
+    "with open(\"EColi-encoder.plk\",\"wb\") as f: \n",
+    "    pickle.dump(enc, f)\n",
+    "\n",
+    "# Loading the file later:\n",
+    "# encoder = pickle.load(f) \n",
+    "# data = encoder.transform(df).toarray()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 299
+    },
+    "executionInfo": {
+     "elapsed": 17,
+     "status": "ok",
+     "timestamp": 1642502946865,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "PG-JVE1mkE_a",
+    "outputId": "d9853f92-efa3-4a98-c405-68be9bcea0f1"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>0</th>\n",
+       "      <th>1</th>\n",
+       "      <th>2</th>\n",
+       "      <th>3</th>\n",
+       "      <th>4</th>\n",
+       "      <th>5</th>\n",
+       "      <th>6</th>\n",
+       "      <th>7</th>\n",
+       "      <th>8</th>\n",
+       "      <th>9</th>\n",
+       "      <th>...</th>\n",
+       "      <th>218</th>\n",
+       "      <th>219</th>\n",
+       "      <th>220</th>\n",
+       "      <th>221</th>\n",
+       "      <th>222</th>\n",
+       "      <th>223</th>\n",
+       "      <th>224</th>\n",
+       "      <th>225</th>\n",
+       "      <th>226</th>\n",
+       "      <th>227</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 228 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   0    1    2    3    4    5    6    7    8    9    ...  218  219  220  221  \\\n",
+       "0  0.0  0.0  0.0  1.0  1.0  0.0  0.0  0.0  0.0  1.0  ...  0.0  0.0  0.0  0.0   \n",
+       "1  0.0  0.0  0.0  1.0  0.0  0.0  1.0  0.0  0.0  1.0  ...  0.0  0.0  1.0  0.0   \n",
+       "2  0.0  0.0  1.0  0.0  0.0  0.0  0.0  1.0  1.0  0.0  ...  1.0  0.0  0.0  1.0   \n",
+       "3  1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  ...  0.0  0.0  0.0  0.0   \n",
+       "4  0.0  0.0  0.0  1.0  0.0  1.0  0.0  0.0  0.0  0.0  ...  0.0  1.0  1.0  0.0   \n",
+       "\n",
+       "   222  223  224  225  226  227  \n",
+       "0  1.0  0.0  0.0  0.0  0.0  1.0  \n",
+       "1  0.0  0.0  1.0  0.0  0.0  0.0  \n",
+       "2  0.0  0.0  0.0  0.0  1.0  0.0  \n",
+       "3  0.0  1.0  0.0  1.0  0.0  0.0  \n",
+       "4  0.0  0.0  0.0  0.0  1.0  0.0  \n",
+       "\n",
+       "[5 rows x 228 columns]"
+      ]
+     },
+     "execution_count": 26,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df_new = pd.DataFrame(df1)\n",
+    "df_new.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 299
+    },
+    "executionInfo": {
+     "elapsed": 16,
+     "status": "ok",
+     "timestamp": 1642502946865,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "fg8ECaM0xFle",
+    "outputId": "8cbb0a8f-9d96-468b-9a8c-53b43507ce04"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>0</th>\n",
+       "      <th>1</th>\n",
+       "      <th>2</th>\n",
+       "      <th>3</th>\n",
+       "      <th>4</th>\n",
+       "      <th>5</th>\n",
+       "      <th>6</th>\n",
+       "      <th>7</th>\n",
+       "      <th>8</th>\n",
+       "      <th>9</th>\n",
+       "      <th>...</th>\n",
+       "      <th>219</th>\n",
+       "      <th>220</th>\n",
+       "      <th>221</th>\n",
+       "      <th>222</th>\n",
+       "      <th>223</th>\n",
+       "      <th>224</th>\n",
+       "      <th>225</th>\n",
+       "      <th>226</th>\n",
+       "      <th>227</th>\n",
+       "      <th>Classes</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 229 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     0    1    2    3    4    5    6    7    8    9  ...  219  220  221  222  \\\n",
+       "0  0.0  0.0  0.0  1.0  1.0  0.0  0.0  0.0  0.0  1.0  ...  0.0  0.0  0.0  1.0   \n",
+       "1  0.0  0.0  0.0  1.0  0.0  0.0  1.0  0.0  0.0  1.0  ...  0.0  1.0  0.0  0.0   \n",
+       "2  0.0  0.0  1.0  0.0  0.0  0.0  0.0  1.0  1.0  0.0  ...  0.0  0.0  1.0  0.0   \n",
+       "3  1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  ...  0.0  0.0  0.0  0.0   \n",
+       "4  0.0  0.0  0.0  1.0  0.0  1.0  0.0  0.0  0.0  0.0  ...  1.0  1.0  0.0  0.0   \n",
+       "\n",
+       "   223  224  225  226  227  Classes  \n",
+       "0  0.0  0.0  0.0  0.0  1.0        1  \n",
+       "1  0.0  1.0  0.0  0.0  0.0        1  \n",
+       "2  0.0  0.0  0.0  1.0  0.0        1  \n",
+       "3  1.0  0.0  1.0  0.0  0.0        1  \n",
+       "4  0.0  0.0  0.0  1.0  0.0        1  \n",
+       "\n",
+       "[5 rows x 229 columns]"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Fixing the classes column:\n",
+    "\n",
+    "df[\"Class\"] = df[\"Class\"].replace(to_replace =[\"+\"], value =1)\n",
+    "df[\"Class\"] = df[\"Class\"].replace(to_replace =[\"-\"], value =0)\n",
+    "df_new[\"Classes\"] = df['Class']\n",
+    "df_new.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 299
+    },
+    "executionInfo": {
+     "elapsed": 16,
+     "status": "ok",
+     "timestamp": 1642502946866,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "bF1QwXEociUL",
+    "outputId": "77699abc-2ee1-4f0a-a23a-359803f91ec1"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Class</th>\n",
+       "      <th>0_a</th>\n",
+       "      <th>0_c</th>\n",
+       "      <th>0_g</th>\n",
+       "      <th>0_t</th>\n",
+       "      <th>1_a</th>\n",
+       "      <th>1_c</th>\n",
+       "      <th>1_g</th>\n",
+       "      <th>1_t</th>\n",
+       "      <th>2_a</th>\n",
+       "      <th>...</th>\n",
+       "      <th>54_g</th>\n",
+       "      <th>54_t</th>\n",
+       "      <th>55_a</th>\n",
+       "      <th>55_c</th>\n",
+       "      <th>55_g</th>\n",
+       "      <th>55_t</th>\n",
+       "      <th>56_a</th>\n",
+       "      <th>56_c</th>\n",
+       "      <th>56_g</th>\n",
+       "      <th>56_t</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 229 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   Class  0_a  0_c  0_g  0_t  1_a  1_c  1_g  1_t  2_a  ...  54_g  54_t  55_a  \\\n",
+       "0      1    0    0    0    1    1    0    0    0    0  ...     0     0     0   \n",
+       "1      1    0    0    0    1    0    0    1    0    0  ...     0     0     1   \n",
+       "2      1    0    0    1    0    0    0    0    1    1  ...     1     0     0   \n",
+       "3      1    1    0    0    0    1    0    0    0    0  ...     0     0     0   \n",
+       "4      1    0    0    0    1    0    1    0    0    0  ...     0     1     1   \n",
+       "\n",
+       "   55_c  55_g  55_t  56_a  56_c  56_g  56_t  \n",
+       "0     0     1     0     0     0     0     1  \n",
+       "1     0     0     0     1     0     0     0  \n",
+       "2     1     0     0     0     0     1     0  \n",
+       "3     0     0     1     0     1     0     0  \n",
+       "4     0     0     0     0     0     1     0  \n",
+       "\n",
+       "[5 rows x 229 columns]"
+      ]
+     },
+     "execution_count": 28,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#Encoding - Alternative\n",
+    "numerical_df = pd.get_dummies(df)\n",
+    "numerical_df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "metadata": {
+    "id": "KI5NkuhmdTw1"
+   },
+   "outputs": [],
+   "source": [
+    "# Training and Testing the Classification Algorithms"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "metadata": {
+    "id": "OyZfAwzieBDk"
+   },
+   "outputs": [],
+   "source": [
+    "y = df_new['Classes'].values# numerical_df['Class'].values\n",
+    "X = df_new.drop(['Classes'], axis = 1).values# numerical_df.drop(['Class'], axis = 1).values\n",
+    "\n",
+    "#define a seed for reproducibility\n",
+    "seed = 1\n",
+    "\n",
+    "# Splitting data into training and testing data\n",
+    "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = seed)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 934,
+     "status": "ok",
+     "timestamp": 1642502947786,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "T4jnyeNNeHrq",
+    "outputId": "07a48514-43c6-4570-ed45-534cdac51aa5"
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "1.0\n"
+     ]
+    }
+   ],
+   "source": [
+    "model = MLPClassifier(hidden_layer_sizes=(150,100,50), max_iter=300,activation = 'relu',solver='adam',random_state=1)\n",
+    "\n",
+    "model.fit(X_train, y_train)\n",
+    "print(model.score(X_train, y_train))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 29,
+     "status": "ok",
+     "timestamp": 1642502947786,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "XpZ6xwNsfYKO",
+    "outputId": "9af1d73c-a659-41b6-f80d-68cefec61627"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9259259259259259"
+      ]
+     },
+     "execution_count": 32,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#Predicting y for X_val\n",
+    "y_pred = model.predict(X_test)\n",
+    "model.score(X_test, y_test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 28,
+     "status": "ok",
+     "timestamp": 1642502947787,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "ESHL7T3WgVI5",
+    "outputId": "2eea2812-4f7e-47de-e3a0-db67d3d713e3"
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "              precision    recall  f1-score   support\n",
+      "\n",
+      "           0       1.00      0.88      0.94        17\n",
+      "           1       0.83      1.00      0.91        10\n",
+      "\n",
+      "    accuracy                           0.93        27\n",
+      "   macro avg       0.92      0.94      0.92        27\n",
+      "weighted avg       0.94      0.93      0.93        27\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Model evaluation\n",
+    "print(classification_report(y_test, y_pred))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 283
+    },
+    "executionInfo": {
+     "elapsed": 26,
+     "status": "ok",
+     "timestamp": 1642502947788,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "EBtMlUp5e4pF",
+    "outputId": "84215103-1ca9-4812-d29c-b999ff095aa3"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<AxesSubplot:>"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "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lxru+a9Ovf697/pEate6YPW/7lLpF4vFKBZ3/fvdo0ePGDlyZCxdurR9bPr06bFs2bJ44oknUovJnD8AJKRZFb9Vot+dQYMGxXve856qseOPPz7+/d//PcWItP0BoG6MHj06nnvuuaqx559/Po444ohU76PyB4CEWm3yM3PmzBg1alTccsstce6558Z///d/x/z582P+/Pmp3kflDwAJbSkeHXHKKafEgw8+GA888EAMGzYs/uEf/iFmz54dF110UQq/6o9U/gBQR84555w455xzOvUekj8AJHixDwDkTMWLfQCALFH5A0CCtj8A5EzWk7+2PwDkjMofABLq4qU3nUjyB4CEWu3w11UkfwBIMOcPAGSKyh8AErJe+Uv+AJCQ9QV/2v4AkDMqfwBIsNofAHIm63P+2v4AkDMqfwBIyPqCP8kfABLaMp7+tf0BIGdU/gCQkPUFf5I/ACRku+kv+QPALrJe+ZvzB4CcUfkDQIId/gAgZzzqBwBkisofABKyXfdL/gCwC6v9AYBMUfkDQELWF/xJ/gCQkO3Ur+0PALmj8geAhKwv+JP8ASDBnD8A5Ey2U785fwDIHZU/ACSY8weAnKlkvPGv7Q8AOSP5A0BCW4rH3iqVSlEoFGLGjBn7cJXd0/YHgIRaP+q3bNmymD9/fpx44omdcn2VPwDUkS1btsRFF10Ud999dxx22GGdcg/JHwASKike5XI5Nm/eXHWUy+W3vPdll10WZ599dowfP76zfp62PxF/d8UnYtxZp8eRRx8R5dfL8czyZ2POF+fFr154sdahQZfq9pcnRLHp3Oh2xDFxwGH9Yus/fSF2PLW06pziRz4ZPc44Kwq9esfO1T+P177+T9H20q9qFDGdJc22f6lUihtvvLFq7IYbbohZs2btcu63vvWtaG1tjeXLl6d2/91R+RMnn3pSfPueB+Pis6fGZefNjG7dusXcb90eB/U8qNahQZcqFA+KnS+ujte+OXe33/c467wofuhj8do358aWmy6Ltk2/j16fuzXioJ5dHCn7k5aWlti0aVPV0dLSsst5L774Ylx55ZXxzW9+Mw46qHP//avyJ6Zf+LmqzzfOLMV/Pfu9OH74sfHUk0/XKCroejt+uix2/HTZW35fPPOj8fr3748drY9HRMRrX7ktDrnz29HjA38V2x79v10VJl0gzU1+isViFIvFtz2v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\n",
+      "text/plain": [
+       "<Figure size 640x480 with 2 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "#Importing Confusion Matrix\n",
+    "#Comparing the predictions against the actual observations in y_val\n",
+    "cm = confusion_matrix(y_pred, y_test)\n",
+    "sns.heatmap(cm, annot=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 265
+    },
+    "executionInfo": {
+     "elapsed": 23,
+     "status": "ok",
+     "timestamp": 1642502947788,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "QOutcEr9l8ZM",
+    "outputId": "4630ea2b-5a7c-4304-bbaa-5f40cf906665"
+   },
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 640x480 with 1 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# Plotting graph for MLPClassifier\n",
+    "\n",
+    "loss_values = model.loss_curve_\n",
+    "plt.plot(loss_values)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {
+    "id": "HdhJVtKQfn9J"
+   },
+   "outputs": [],
+   "source": [
+    "# save the model to disk\n",
+    "\n",
+    "filename = 'E-Coli_model.plk'\n",
+    "pickle.dump(model, open(filename, 'wb'))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 381,
+     "status": "ok",
+     "timestamp": 1642502985873,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "9J3KSLC9tHeZ",
+    "outputId": "d7bed4b1-8ac8-4f11-f45a-1f83e93f7b50"
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "['t', 't', 'a', 'c', 't', 'a', 'g', 'c', 'a', 'a', 't', 'a', 'c', 'g', 'c', 't', 't', 'g', 'c', 'g', 't', 't', 'c', 'g', 'g', 't', 'g', 'g', 't', 't', 'a', 'a', 'g', 't', 'a', 't', 'g', 't', 'a', 't', 'a', 'a', 't', 'g', 'c', 'g', 'c', 'g', 'g', 'g', 'c', 't', 't', 'g', 't', 'c', 'g']\n"
+     ]
+    }
+   ],
+   "source": [
+    "genome = \"ttactagcaatacgcttgcgttcggtggttaagtatgtataatgcgcgggcttgtcg\"\n",
+    "# genome_false = \"ttaacattaataaataaggaggctctaatggcactcattagccaatcaatcaagaac\"\n",
+    "genome_list = list(genome)\n",
+    "print(genome_list)\n",
+    "df_test = pd.DataFrame(genome_list)\n",
+    "df_test = df_test.transpose()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/",
+     "height": 270
+    },
+    "executionInfo": {
+     "elapsed": 593,
+     "status": "ok",
+     "timestamp": 1642502986832,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "DC-HpOggu6xg",
+    "outputId": "7014f7a0-6775-4e51-8265-e87d429d9ded"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>0</th>\n",
+       "      <th>1</th>\n",
+       "      <th>2</th>\n",
+       "      <th>3</th>\n",
+       "      <th>4</th>\n",
+       "      <th>5</th>\n",
+       "      <th>6</th>\n",
+       "      <th>7</th>\n",
+       "      <th>8</th>\n",
+       "      <th>9</th>\n",
+       "      <th>...</th>\n",
+       "      <th>48</th>\n",
+       "      <th>49</th>\n",
+       "      <th>50</th>\n",
+       "      <th>51</th>\n",
+       "      <th>52</th>\n",
+       "      <th>53</th>\n",
+       "      <th>54</th>\n",
+       "      <th>55</th>\n",
+       "      <th>56</th>\n",
+       "      <th>Class</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>...</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>...</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>c</td>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>t</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>a</td>\n",
+       "      <td>t</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>...</td>\n",
+       "      <td>c</td>\n",
+       "      <td>c</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>g</td>\n",
+       "      <td>g</td>\n",
+       "      <td>t</td>\n",
+       "      <td>a</td>\n",
+       "      <td>g</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 58 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   0  1  2  3  4  5  6  7  8  9  ... 48 49 50 51 52 53 54 55 56 Class\n",
+       "0  t  a  c  t  a  g  c  a  a  t  ...  g  c  t  t  g  t  c  g  t     1\n",
+       "1  t  g  c  t  a  t  c  c  t  g  ...  c  a  t  c  g  c  c  a  a     1\n",
+       "2  g  t  a  c  t  a  g  a  g  a  ...  c  a  c  c  c  g  g  c  g     1\n",
+       "3  a  a  t  t  g  t  g  a  t  g  ...  a  a  c  a  a  a  c  t  c     1\n",
+       "4  t  c  g  a  t  a  a  t  t  a  ...  c  c  g  t  g  g  t  a  g     1\n",
+       "\n",
+       "[5 rows x 58 columns]"
+      ]
+     },
+     "execution_count": 39,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 4,
+     "status": "ok",
+     "timestamp": 1642502988478,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "BwXEWeoIuXjp",
+    "outputId": "72c6e5d8-d713-4f4b-8143-e9b5bc8ded55"
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[1]\n"
+     ]
+    }
+   ],
+   "source": [
+    "encoder = pickle.load(open(\"EColi-encoder.plk\", 'rb')) \n",
+    "data_test = encoder.transform(df_test).toarray()\n",
+    "print(model.predict(data_test))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {
+    "colab": {
+     "base_uri": "https://localhost:8080/"
+    },
+    "executionInfo": {
+     "elapsed": 449,
+     "status": "ok",
+     "timestamp": 1642503625664,
+     "user": {
+      "displayName": "siddharth patra",
+      "photoUrl": "https://lh3.googleusercontent.com/a-/AOh14Ggv4lQRGyP7p3T0gn2CLL_T-zAq_F4BJx6kWGs1UA=s64",
+      "userId": "01966341811263607507"
+     },
+     "user_tz": -330
+    },
+    "id": "C9uAKt1m16Kz",
+    "outputId": "00976c3a-2764-4a8f-8247-424120568314"
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "numpy.int64"
+      ]
+     },
+     "execution_count": 44,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "type(model.predict(data_test)[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {
+    "id": "xpStkUzyg3bO"
+   },
+   "outputs": [],
+   "source": [
+    "# load the model from disk\n",
+    "# loaded_model = pickle.load(open(filename, 'rb'))\n",
+    "# result = loaded_model.score(X_test, Y_test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "colab": {
+   "authorship_tag": "ABX9TyPQR8PKvUWF0kZFZB0gtKyn",
+   "collapsed_sections": [],
+   "name": "DNA sequencing for detecting E.Coli.ipynb",
+   "provenance": []
+  },
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.13"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}
